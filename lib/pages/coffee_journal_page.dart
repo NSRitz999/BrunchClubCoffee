@@ -4,8 +4,7 @@
 /// @author Spencer Leisch
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:the_coffee_and_code/pages/settings_page.dart';
-import 'package:the_coffee_and_code/pages/videos_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:the_coffee_and_code/utils/add_journal_page.dart';
 import 'package:flutter/material.dart';
 import 'package:the_coffee_and_code/controller/BCController.dart';
@@ -14,18 +13,16 @@ import '../main.dart';
 import '../utils/add_journal_page.dart';
 import '../utils/app_drawer.dart';
 import '../utils/edit_journal_page.dart';
-import 'coffee_time_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const MainJournal());
 }
 
-
-
 ///important variables
 final journalsRef = FirebaseFirestore.instance.collection('journal');
 final StressFreeController controllerRef = StressFreeController();
+final String userID = FirebaseAuth.instance.currentUser!.uid.toString();
 
 class MainJournal extends StatefulWidget {
   const MainJournal({Key? key}) : super(key: key);
@@ -52,7 +49,7 @@ class _MainJournal extends State<MainJournal> {
           child: Column(children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(10.0, 10.0, 0.0, 5.0),
-              child: Text("Your Journals", // the title
+              child: Text(userID, // the title
                   style: TextStyle(
                     fontSize: 25.0,
                     fontWeight: FontWeight.bold,
@@ -76,9 +73,8 @@ class _MainJournal extends State<MainJournal> {
                           itemBuilder: (context, index) {
                             return _buildJournalListItem(
                                 context, data.docs[data.size - 1 - index]);
-
-                            ///this is really dumb, but it makes the list auto sort to newest to oldest
-                            ///please don't change this
+                            ///the database sorts from oldest to newest, the math above forces it to sort
+                            ///newest to oldest
                           });
                     })
             ),
@@ -109,11 +105,13 @@ class _MainJournal extends State<MainJournal> {
 ///Returns a card consisting of the title and the body
 Widget _buildJournalListItem(BuildContext context, DocumentSnapshot document) {
   var data = document.data() as Map<String, dynamic>;
+  String uid = data['userId'].toString();
   var date = DateTime.fromMillisecondsSinceEpoch(data['date']);
-  return Padding(
-    padding: const EdgeInsets.all(1.0),
-    child: Card(
-      child: ListTile(
+  if(userID.compareTo(uid) == 0) {
+    return Padding(
+      padding: const EdgeInsets.all(1.0),
+      child: Card(
+        child: ListTile(
           contentPadding: const EdgeInsets.fromLTRB(10.0, 5.0, 0.0, 0.0),
           title: Text(data['title'] +
               " --- " +
@@ -146,9 +144,13 @@ Widget _buildJournalListItem(BuildContext context, DocumentSnapshot document) {
           shape: RoundedRectangleBorder(
               side: BorderSide(color: theme.mainColor, width: 1),
               borderRadius: BorderRadius.circular(5)),
+        ),
       ),
-    ),
-  );
+    );
+  }
+  else {
+    return const Padding(padding: EdgeInsets.zero);
+  }
 }
 ///shows the "do you want to delete this journal" dialog
 showDeleteDialog(BuildContext context, String title) {
