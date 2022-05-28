@@ -1,3 +1,4 @@
+//@author Sydney Hoglund
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:the_coffee_and_code/model/BCModel.dart';
@@ -9,6 +10,7 @@ import '../main.dart';
 import '../utils/app_drawer.dart';
 import '../utils/video_player.dart';
 import 'coffee_coffee_page.dart';
+
 
 class CoffeeTime extends StatefulWidget {
   const CoffeeTime({Key? key}) : super(key: key);
